@@ -41,6 +41,7 @@ st.sidebar.header("📌 도감 목차")
 st.sidebar.markdown("- **Section 1.** 영화별 일별 관객수 변화")
 st.sidebar.markdown("- **Section 2.** 누적 일관객 TOP 5 영화 비교")
 st.sidebar.markdown("- **Section 3.** 일별 10위권 관객수 합계 추이")
+st.sidebar.markdown("- **Section 4.** 기간 내 관객수 TOP 10 영화")
 
 # ==========================================
 # Section 1. 영화별 일별 관객수 변화
@@ -216,3 +217,63 @@ top3_dates_fmt = [f"{r['날짜'].strftime('%Y년 %m월 %d일')}({int(r['일관�
 top3_text = ", ".join(top3_dates_fmt)
 
 st.info(f"💡 **이 그래프로 알 수 있는 것:** 극장가 전체의 성수기와 비수기 흐름을 한눈에 볼 수 있으며, 관객수가 가장 많았던 상위 3일({top3_text})을 파악할 수 있습니다.")
+
+
+# ==========================================
+# Section 4. 기간 내 관객수 TOP 10 영화 가로 막대그래프
+# ==========================================
+st.markdown("---")
+st.header("4. 기간 내 일관객 합계 TOP 10 영화 (가로 막대그래프)")
+
+# 영화별 일관객 합계 및 10위권 등재 일수(차트인 일수) 집계
+top10_df = (
+    df.groupby('영화명')
+    .agg(
+        총관객수=('일관객', 'sum'),
+        차트인일수=('날짜', 'count')
+    )
+    .reset_index()
+    .sort_values('총관객수', ascending=False)
+    .head(10)
+)
+
+# 관객이 많은 영화가 위에 오도록 정렬 (Plotly 가로 막대는 y축이 아래에서 위로 그려지므로 ascending=True로 설정)
+top10_df_plot = top10_df.sort_values('총관객수', ascending=True)
+
+# 가로 막대그래프 생성
+fig4 = px.bar(
+    top10_df_plot,
+    x='총관객수',
+    y='영화명',
+    orientation='h',
+    title="기간 내 일관객 합계 TOP 10 영화 순위",
+    labels={'총관객수': '총 일관객수 (명)', '영화명': '영화 제목'},
+    text='총관객수'
+)
+
+# 막대 및 Hover 툴팁 커스텀 (10위권 진입 일수 포함)
+fig4.update_traces(
+    texttemplate='%{x:,}명',
+    textposition='outside',
+    hovertemplate="<b>영화명:</b> %{y}<br><b>기간 내 총 관객수:</b> %{x:,}명<br><b>10위권 등재 일수:</b> %{customdata}일<extra></extra>",
+    customdata=top10_df_plot['차트인일수'],
+    marker_color='#4A90E2'
+)
+
+fig4.update_layout(
+    xaxis_title="총 관객수 (명)",
+    yaxis_title="영화 제목",
+    template="plotly_white",
+    height=550,
+    xaxis=dict(showgrid=True)
+)
+
+# Streamlit에 그래프 표시
+st.plotly_chart(fig4, use_container_width=True)
+
+# 가장 관객수 많은 영화 정보
+top_movie_name = top10_df.iloc[0]['영화명']
+top_movie_audience = int(top10_df.iloc[0]['총관객수'])
+top_movie_days = int(top10_df.iloc[0]['차트인일수'])
+
+st.info(f"💡 **이 그래프로 알 수 있는 것:** 해당 기간 동안 가장 많은 관객을 모은 TOP 10 영화 순위를 확인할 수 있으며, 1위인 **'{top_movie_name}'**(총 {top_movie_audience:,}명, 10위권 {top_movie_days}일 유지)을 비롯한 각 영화의 10위권 유지 기간(차트인 일수)을 함께 비교할 수 있습니다.")
