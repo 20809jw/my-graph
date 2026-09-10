@@ -40,6 +40,7 @@ except Exception as e:
 st.sidebar.header("📌 도감 목차")
 st.sidebar.markdown("- **Section 1.** 영화별 일별 관객수 변화")
 st.sidebar.markdown("- **Section 2.** 누적 일관객 TOP 5 영화 비교")
+st.sidebar.markdown("- **Section 3.** 일별 10위권 관객수 합계 추이")
 
 # ==========================================
 # Section 1. 영화별 일별 관객수 변화
@@ -146,3 +147,72 @@ st.plotly_chart(fig2, use_container_width=True)
 
 top5_str = ", ".join(top5_movies)
 st.info(f"💡 **이 그래프로 알 수 있는 것:** 기간 내 가장 흥행한 상위 5개 영화({top5_str})의 흥행 시기 겹침 여부와 개봉 초기 화력 비교를 한눈에 볼 수 있으며, 범례 항목을 클릭해 특정 영화를 켜거나 끌 수 있습니다.")
+
+
+# ==========================================
+# Section 3. 일별 10위권 관객수 합계 영역 그래프
+# ==========================================
+st.markdown("---")
+st.header("3. 일별 10위권 전체 관객수 합계 추이 (영역 그래프)")
+
+# 날짜별 10위권 관객수 합계 집계
+daily_total = df.groupby('날짜')['일관객'].sum().reset_index()
+daily_total = daily_total.sort_values('날짜')
+
+# 관객수 합계 상위 3일 추출
+top3_days = daily_total.nlargest(3, '일관객').sort_values('날짜')
+
+# 영역 그래프(Area Chart) 생성
+fig3 = px.area(
+    daily_total,
+    x='날짜',
+    y='일관객',
+    title="일별 박스오피스 10위권 영화 전체 관객수 합계 변화",
+    labels={'날짜': '날짜', '일관객': '10위권 관객수 합계 (명)'}
+)
+
+fig3.update_traces(
+    hovertemplate="<b>날짜:</b> %{x|%Y-%m-%d}<br><b>전체 관객수:</b> %{y:,}명<extra></extra>",
+    line_color='#2b5c8f',
+    fillcolor='rgba(43, 92, 143, 0.3)'
+)
+
+# TOP 3일 데이터 주석(Annotation) 추가
+for index, row in top3_days.iterrows():
+    date_str = row['날짜'].strftime('%Y-%m-%d')
+    audience_str = f"{int(row['일관객']):,}명"
+    
+    fig3.add_annotation(
+        x=row['날짜'],
+        y=row['일관객'],
+        text=f"<b>TOP 3</b><br>{date_str}<br>({audience_str})",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="#d9534f",
+        ax=0,
+        ay=-50,
+        bgcolor="#ffffff",
+        bordercolor="#d9534f",
+        borderwidth=1.5,
+        borderpad=4,
+        font=dict(size=11, color="#333333")
+    )
+
+fig3.update_layout(
+    xaxis_title="날짜",
+    yaxis_title="총 관객수 (명)",
+    hovermode="x unified",
+    template="plotly_white",
+    height=550
+)
+
+# Streamlit에 그래프 표시
+st.plotly_chart(fig3, use_container_width=True)
+
+# TOP 3 날짜 문구 정리
+top3_dates_fmt = [f"{r['날짜'].strftime('%Y년 %m월 %d일')}({int(r['일관객']):,}명)" for _, r in top3_days.iterrows()]
+top3_text = ", ".join(top3_dates_fmt)
+
+st.info(f"💡 **이 그래프로 알 수 있는 것:** 극장가 전체의 성수기와 비수기 흐름을 한눈에 볼 수 있으며, 관객수가 가장 많았던 상위 3일({top3_text})을 파악할 수 있습니다.")
