@@ -93,8 +93,9 @@ if selected_movie:
     # Streamlit에 그래프 표시
     st.plotly_chart(fig1, use_container_width=True)
     
-    # 그래프 요약 문구
-    st.info(f"💡 **이 그래프로 알 수 있는 것:** {selected_movie}의 개봉 후 일별 관객수 증감 흐름과 주요 흥행 피크(Peak) 시점을 한눈에 파악할 수 있습니다.")
+    # 수정 가능한 요약 문구
+    default_text_1 = f"{selected_movie}의 개봉 후 일별 관객수 증감 흐름과 주요 흥행 피크(Peak) 시점을 한눈에 파악할 수 있습니다."
+    st.text_area("💡 이 그래프로 알 수 있는 것 (수정 가능):", value=default_text_1, key="desc_1", height=100)
 
 
 # ==========================================
@@ -148,7 +149,8 @@ fig2.update_layout(
 st.plotly_chart(fig2, use_container_width=True)
 
 top5_str = ", ".join(top5_movies)
-st.info(f"💡 **이 그래프로 알 수 있는 것:** 기간 내 가장 흥행한 상위 5개 영화({top5_str})의 흥행 시기 겹침 여부와 개봉 초기 화력 비교를 한눈에 볼 수 있으며, 범례 항목을 클릭해 특정 영화를 켜거나 끌 수 있습니다.")
+default_text_2 = f"기간 내 가장 흥행한 상위 5개 영화({top5_str})의 흥행 시기 겹침 여부와 개봉 초기 화력 비교를 한눈에 볼 수 있으며, 범례 항목을 클릭해 특정 영화를 켜거나 끌 수 있습니다."
+st.text_area("💡 이 그래프로 알 수 있는 것 (수정 가능):", value=default_text_2, key="desc_2", height=100)
 
 
 # ==========================================
@@ -214,7 +216,8 @@ st.plotly_chart(fig3, use_container_width=True)
 top3_dates_fmt = [f"{r['날짜'].strftime('%Y년 %m월 %d일')}({int(r['일관객']):,}명)" for _, r in top3_days.iterrows()]
 top3_text = ", ".join(top3_dates_fmt)
 
-st.info(f"💡 **이 그래프로 알 수 있는 것:** 극장가 전체의 성수기와 비수기 흐름을 한눈에 볼 수 있으며, 관객수가 가장 많았던 상위 3일({top3_text})을 파악할 수 있습니다.")
+default_text_3 = f"극장가 전체의 성수기와 비수기 흐름을 한눈에 볼 수 있으며, 관객수가 가장 많았던 상위 3일({top3_text})을 파악할 수 있습니다."
+st.text_area("💡 이 그래프로 알 수 있는 것 (수정 가능):", value=default_text_3, key="desc_3", height=100)
 
 
 # ==========================================
@@ -271,11 +274,12 @@ top_movie_name = top10_df.iloc[0]['영화명']
 top_movie_audience = int(top10_df.iloc[0]['총관객수'])
 top_movie_days = int(top10_df.iloc[0]['차트인일수'])
 
-st.info(f"💡 **이 그래프로 알 수 있는 것:** 해당 기간 동안 가장 많은 관객을 모은 TOP 10 영화 순위를 확인할 수 있으며, 1위인 **'{top_movie_name}'**(총 {top_movie_audience:,}명, 10위권 {top_movie_days}일 유지)을 비롯한 각 영화의 10위권 유지 기간(차트인 일수)을 함께 비교할 수 있습니다.")
+default_text_4 = f"해당 기간 동안 가장 많은 관객을 모은 TOP 10 영화 순위를 확인할 수 있으며, 1위인 '{top_movie_name}'(총 {top_movie_audience:,}명, 10위권 {top_movie_days}일 유지)을 비롯한 각 영화의 10위권 유지 기간(차트인 일수)을 함께 비교할 수 있습니다."
+st.text_area("💡 이 그래프로 알 수 있는 것 (수정 가능):", value=default_text_4, key="desc_4", height=100)
 
 
 # ==========================================
-# Section 5. 월×요일별 관객수 합계 히트맵 (신규 추가)
+# Section 5. 월×요일별 관객수 합계 히트맵
 # ==========================================
 st.markdown("---")
 st.header("5. 월×요일별 관객수 합계 (히트맵)")
@@ -312,9 +316,9 @@ fig5 = px.imshow(
     labels=dict(x="요일", y="월", color="총 관객수 (명)"),
     x=day_order,
     y=pivot_df.index,
-    color_continuous_scale="Blues",  # 관객수가 많을수록 진한 파란색
+    color_continuous_scale="Blues",
     title="월 및 요일별 일관객 합계 분포",
-    text_auto=',d'  # 셀 내부 수치 컴마(,) 포맷팅 표시
+    text_auto=',d'
 )
 
 fig5.update_traces(
@@ -330,4 +334,5 @@ fig5.update_layout(
 
 st.plotly_chart(fig5, use_container_width=True)
 
-st.info("💡 **이 그래프로 알 수 있는 것:** 월별/요일별 극장 관객수의 집중도를 한눈에 확인할 수 있습니다. 주말(토, 일) 및 특정 성수기 월에 관객수가 어떻게 몰리는지 패턴을 직관적으로 파악할 수 있습니다.")
+default_text_5 = "월별/요일별 극장 관객수의 집중도를 한눈에 확인할 수 있습니다. 주말(토, 일) 및 특정 성수기 월에 관객수가 어떻게 몰리는지 패턴을 직관적으로 파악할 수 있습니다."
+st.text_area("💡 이 그래프로 알 수 있는 것 (수정 가능):", value=default_text_5, key="desc_5", height=100)
